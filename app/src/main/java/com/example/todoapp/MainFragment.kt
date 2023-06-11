@@ -13,7 +13,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainFragment(var mainActivity: MainActivity) : Fragment(R.layout.fragment_main) {
 
-    private val repository: ToDoItemsRepository = ToDoItemsRepository()
+    private val repository: ToDoItemRepository = ToDoItemRepository()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

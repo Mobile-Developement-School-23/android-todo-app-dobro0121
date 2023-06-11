@@ -15,4 +15,6 @@
     <color name="blueFormsColor">#007AFF</color>
     <color name="redFormsColor">#FF3B30</color>
     <color name="greenFormsColor">#34C759</color>
+    <color name="lightGrey">#808080</color>
+    <color name="lightBlue">#7FC7FF</color>
 </resources>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:name="com.example.todoapp.AddTaskFragment"
+    tools:layout="@layout/fragment_add_task"
+    android:id="@+id/fragment_add_task"
+    android:background="@color/backgroundColor"
+    tools:context=".AddTaskFragment">
+
+
+    <ImageButton
+        android:id="@+id/imageButtonClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/close"
+        android:scaleY="1.5"
+        android:scaleX="1.5"
+        android:backgroundTint="@color/backgroundColor"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="40dp"
+        android:layout_marginLeft="20dp"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/DownloadTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Сохранить"
+        android:textSize="20dp"
+        android:textColor="@color/blueFormsColor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="40dp"
+        android:layout_marginRight="20dp"
+        tools:ignore="MissingConstraints"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/imageButtonClose"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardViewText"
+                android:layout_width="350dp"
+                android:layout_height="130dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="10dp"
+                app:cardPreventCornerOverlap="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="20dp"
+                tools:ignore="MissingConstraints">
+
+                <TextView
+                    android:layout_width="320dp"
+                    android:layout_height="110dp"
+                    android:maxLines="10"
+                    android:minLines="1"
+                    android:singleLine="false"
+                    android:hint="Что-то надо сделать..."
+                    android:textSize="16dp"
+                    android:textColor="@color/textColor"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="10dp"></TextView>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/ImportantTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Важность"
+                android:textSize="20dp"
+                android:textColor="@color/textColor"
+                android:layout_marginTop="40dp"
+                android:layout_marginLeft="20dp"
+                tools:ignore="MissingConstraints"/>
+
+            <Spinner
+                android:id="@+id/spinnerImportant"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="10dp"
+                tools:ignore="MissingConstraints" />
+
+            <View
+                android:id="@+id/view1"
+                android:layout_width="350dp"
+                android:layout_height="1dp"
+                android:background="@color/backgroundDarkColor"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="15dp"
+                android:layout_marginLeft="20dp"
+                tools:ignore="MissingConstraints"></View>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp">
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintRight_toRightOf="parent"
+                    android:layout_marginRight="20dp"
+                    app:thumbTint="@color/switch_thumb_selector"
+                    app:trackTint="@color/switch_track_selector"></androidx.appcompat.widget.SwitchCompat>
+
+                <TextView
+                    android:id="@+id/DoTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:text="Сделать до"
+                    android:textColor="@color/textColor"
+                    android:textSize="20dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="MissingConstraints" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/view2"
+                android:layout_width="350dp"
+                android:layout_height="1dp"
+                android:background="@color/backgroundDarkColor"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="15dp"
+                android:layout_marginLeft="20dp"
+                tools:ignore="MissingConstraints"></View>
+
+        <TextView
+            android:id="@+id/DeleteTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/delete"
+            android:text="   Удалить"
+            android:layout_marginLeft="25dp"
+            android:layout_marginTop="30dp"
+            android:textSize="20dp"
+            android:textColor="@color/backgroundDarkColor"
+            tools:ignore="MissingConstraints"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
