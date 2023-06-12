@@ -2,8 +2,8 @@ package com.example.todoapp
 
 import android.content.Context
 
-class ToDoItemsRepository {
-    fun getTasks(context: Context?): List<ToDoItem> {
+class ToDoItemRepository {
+    fun getTasks(): List<ToDoItem> {
         return buildList {
             val taskText = "Как же много дел № "
             val numberOfTasks = 15
@@ -13,4 +13,5 @@ class ToDoItemsRepository {
             }
         }
     }
+
 }

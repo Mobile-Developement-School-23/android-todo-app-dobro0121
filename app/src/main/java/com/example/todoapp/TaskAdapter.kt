@@ -10,7 +10,11 @@ import androidx.recyclerview.widget.RecyclerView
 
 class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
 
-    lateinit var tasksArray: ArrayList<ToDoItem>
+    private val repository: ToDoItemRepository = ToDoItemRepository()
+
+    private val tasksArray: List<ToDoItem> by lazy {
+        repository.getTasks()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.task_item, parent, false)
@@ -20,9 +24,9 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
     override fun getItemCount(): Int = tasksArray.size
 
     inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
-        var itemTextView: TextView
-        var itemInfo: ImageButton
-        var itemCheckBox: CheckBox
+        val itemTextView: TextView
+        val itemInfo: ImageButton
+        val itemCheckBox: CheckBox
 
         init {
             itemTextView = itemView.findViewById(R.id.taskTextView)
@@ -32,7 +36,7 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.itemTextView.text = tasksArray[position].toString()
+        holder.itemTextView.text = tasksArray.get(position).textOfTask
     }
 
 }

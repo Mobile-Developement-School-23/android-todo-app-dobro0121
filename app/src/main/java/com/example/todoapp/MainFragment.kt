@@ -6,19 +6,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
-class MainFragment(var mainActivity: MainActivity) : Fragment(R.layout.fragment_main) {
-
-    private val repository: ToDoItemRepository = ToDoItemRepository()
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mainActivity = context as MainActivity
-    }
+class MainFragment() : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,8 +33,6 @@ class MainFragment(var mainActivity: MainActivity) : Fragment(R.layout.fragment_
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         val adapter: RecyclerView.Adapter<TaskAdapter.ViewHolder> = TaskAdapter()
         recyclerView.layoutManager = layoutManager
-
-        (adapter as TaskAdapter).tasksArray = repository.getTasks(context) as ArrayList<ToDoItem>
         recyclerView.adapter = adapter
 
         /*ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
@@ -91,6 +83,10 @@ class MainFragment(var mainActivity: MainActivity) : Fragment(R.layout.fragment_
             // to our recycler view.
         }).attachToRecyclerView(courseRV)*/
         val addButton = view.findViewById<FloatingActionButton>(R.id.floatingActionButton)
+        addButton.setOnClickListener {
+            Navigation.findNavController(view).navigate(R.id.action_mainFragment_to_addTaskFragment)
+        }
+
 
     }
 
