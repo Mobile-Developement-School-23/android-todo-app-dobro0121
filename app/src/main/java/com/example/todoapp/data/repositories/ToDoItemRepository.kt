@@ -46,32 +46,6 @@ object ToDoItemRepository {
         }
     }
 
-    /*fun updateTask(updatedTask: ToDoItem, text: String) {
-        val index = todoItems.indexOfFirst { it.id == updatedTask.id }
-        if (index != -1) {
-            todoItems[index].textOfTask = text
-            todoItems[index] = updatedTask
-        }
-    }
-
-    fun updateDate(updatedDate: ToDoItem, newDate: String){
-        val index = todoItems.indexOfFirst { it.id == updatedDate.id }
-        if (index != -1) {
-            todoItems[index].deadline = ""
-            todoItems[index].deadline = newDate
-            todoItems[index] = updatedDate
-        }
-    }
-
-    fun updateImportance(updatedImportance: ToDoItem, newImportance: String){
-        val index = todoItems.indexOfFirst { it.id == updatedImportance.id }
-        if (index != -1) {
-            todoItems[index].importance = ""
-            todoItems[index].importance = newImportance
-            todoItems[index] = updatedImportance
-        }
-    }*/
-
     fun deleteTask(taskId: String) {
         todoItems.removeAll { it.id == taskId }
     }

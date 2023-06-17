@@ -58,8 +58,6 @@ class MainFragment() : Fragment() {
             adapter.notifyDataSetChanged()
         }
 
-            //deleteViewChanges(view)
-
         val tasks = taskViewModel.getTasks()
         Log.d("TaskList", tasks.toString())
 
@@ -69,27 +67,6 @@ class MainFragment() : Fragment() {
             bundle.putString("id", "addTask_")
             findNavController(view).navigate(R.id.action_mainFragment_to_addTaskFragment, bundle)
         }
-    }
-
-    private fun deleteViewChanges(view: View) {
-        val doneTextView: TextView = view.findViewById(R.id.textView_Done)
-
-        // Следим за изменениями количества выполненных задач
-        doneTextView.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val count: Int = taskViewModel.howManyDone()
-                Log.i("Logcat", count.toString())
-                doneTextView.text = "Выполнено - " + count.toString()
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                // Не нужно ничего делать после изменения текста
-            }
-        })
     }
 }
 
