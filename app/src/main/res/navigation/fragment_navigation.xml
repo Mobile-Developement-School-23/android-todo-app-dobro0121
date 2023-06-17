@@ -7,16 +7,17 @@
 
     <fragment
         android:id="@+id/addTaskFragment"
-        android:name="com.example.todoapp.AddTaskFragment"
+        android:name="com.example.todoapp.ui.fragments.AddTaskFragment"
         android:label="fragment_add_task"
         tools:layout="@layout/fragment_add_task" >
         <action
             android:id="@+id/action_addTaskFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
+            app:destination="@id/mainFragment">
+        </action>
     </fragment>
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.example.todoapp.MainFragment"
+        android:name="com.example.todoapp.ui.fragments.MainFragment"
         android:label="fragment_main"
         tools:layout="@layout/fragment_main" >
         <action

@@ -16,32 +16,21 @@
 
         <CheckBox
             android:id="@+id/checkBox"
-            android:layout_width="wrap_content"
+            android:text=" "
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="30dp"
             android:scaleX="1.3"
             android:scaleY="1.3"
-            android:buttonTint="@color/formsColorDark"
-            tools:ignore="MissingConstraints" />
-
-        <TextView
-            android:id="@+id/taskTextView"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="10"
+            android:maxLines="30"
             android:minLines="1"
             android:singleLine="false"
-            android:text="Дела разные..."
-            android:textColor="@color/textColor"
-            android:textSize="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/imageButtonInfo"
-            app:layout_constraintStart_toEndOf="@id/checkBox"
-            app:layout_constraintTop_toTopOf="parent"
+            app:buttonTint="@color/textColor"
+            app:layout_constraintHorizontal_weight="10"
+            android:buttonTint="@color/formsColorDark"
             tools:ignore="MissingConstraints" />
 
         <ImageButton
@@ -52,27 +41,31 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="15dp"
             android:scaleX="1.3"
             android:scaleY="1.3"
+            app:layout_constraintHorizontal_weight="1"
             app:srcCompat="@drawable/info_outline"
             tools:ignore="MissingConstraints" />
-
         <TextView
-            android:layout_width="230dp"
+            android:id="@+id/dateOfTaskTextView"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/taskTextView"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
+            android:gravity="left"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="35dp"
             android:maxLines="10"
             android:minLines="1"
             android:singleLine="false"
-            android:text="Дата"
-            android:textColor="@color/textColor"
+            android:text="Дата какая-то"
+            android:textColor="@color/blueFormsColor"
             android:textSize="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/checkBox"
             tools:ignore="MissingConstraints" />
+
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
