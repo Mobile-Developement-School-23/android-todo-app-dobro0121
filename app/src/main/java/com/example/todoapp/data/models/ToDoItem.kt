@@ -1,7 +1,25 @@
 package com.example.todoapp.data.models
 
-import java.util.Calendar
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-data class ToDoItem(val id: String, var textOfTask: String, var done: Boolean, var deadline: String, var importance: String) {
+@Entity(tableName = "tasks_table")
+data class ToDoItem (
 
-}
+    @ColumnInfo(name = "id")
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
+    @ColumnInfo(name = "Task")
+    var textOfTask: String,
+
+    @ColumnInfo(name = "Is_completed")
+    val done: Boolean,
+
+    @ColumnInfo(name = "Deadline")
+    var deadline: String,
+
+    @ColumnInfo(name = "Importance")
+    var importance: String
+)
