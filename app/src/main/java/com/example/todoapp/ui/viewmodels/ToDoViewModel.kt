@@ -1,61 +1,89 @@
 package com.example.todoapp.ui.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+
+import android.text.format.DateFormat
+import androidx.lifecycle.*
 import com.example.todoapp.data.models.ToDoItem
 import com.example.todoapp.data.repositories.ToDoItemRepository
+import com.example.todoapp.locateLazy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class ToDoViewModel : ViewModel(){
-    private val taskRepository: ToDoItemRepository = ToDoItemRepository
-    private val _taskList: MutableLiveData<List<ToDoItem>> = MutableLiveData()
-    val taskList: LiveData<List<ToDoItem>> = _taskList
+class ToDoViewModel(private val taskRepository: ToDoItemRepository) : ViewModel(){
 
-    init {
-        // Получение начальных данных из TodoItemRepository
-        val initialTasks = taskRepository.getTasks()
-        _taskList.value = initialTasks
+    //private val taskRepository: ToDoItemRepository by locateLazy()
+    //private val _taskList: MutableLiveData<List<ToDoItem>> = MutableLiveData()
+    //val taskList = taskRepository.getAll().asLiveDataFlow()
 
+    fun getAllTasks(): LiveData<List<ToDoItem>> = taskRepository.getAll()
+
+    fun add(task: String)
+    {
+        viewModelScope.launch {
+            taskRepository.addTask_(createTask(task))
+        }
     }
+
+    fun delete(task: ToDoItem)
+    {
+        viewModelScope.launch {
+            taskRepository.deleteTask_(task)
+        }
+    }
+
+    // нужно видоизменить переданные параметры в иде важности и тд
+    private fun createTask(textTask: String) = ToDoItem(
+        dateOfCreate = createCaption(),
+        dateOfChange = "",
+        textOfTask = textTask,
+        done = false,
+        deadline = "",
+        importance = ""
+    )
+
+    private fun createCaption(): String = DateFormat.format("dd, MMM, yyyy", Date()).toString()
+
+    fun <T> Flow<T>.asLiveDataFlow() = shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     // Генерация уникального идентификатора
     private fun generateTaskId(): String {
         return UUID.randomUUID().toString()
     }
 
-    fun addTask(taskText: String) {
+    fun addTask(newTask: ToDoItem) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val taskId = generateTaskId()
-                Log.i("Logcat", "new taskId: " + taskId)
-                taskRepository.addTask(taskText, taskId)
-                val updatedTasks = taskRepository.getTasks()
-                _taskList.postValue(updatedTasks)
-            }
+            taskRepository.addTask_(newTask)
         }
     }
 
-    fun updateTask(taskId: String, newTaskText: String) {
+    fun getShowDone(): Boolean {
+        return taskRepository.getShowDone()
+    }
+
+    fun updateShowDone(newVaue: Boolean) {
+        taskRepository.updateShowDone(newVaue)
+    }
+
+    /*fun getUncompletedTasks(): List<ToDoItem> {
+        val allTasks = taskList.value
+        return allTasks?.filter { !it.done } ?: emptyList()
+    }*/
+
+    fun updateTask(task: ToDoItem) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                taskRepository.getTaskById(taskId)?.let { taskRepository.updateTask(it, newTaskText) }
-                val updatedTasks = taskRepository.getTasks()
-                _taskList.postValue(updatedTasks)
-            }
+            taskRepository.updateTask_(task)
         }
     }
 
-    fun howManyDone(): Int {
-        return taskRepository.howManyDone()
-    }
 
-    fun updateDate(taskId: String, newDate: String)
+
+
+    /*fun updateDate(taskId: String, newDate: String)
     {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -92,6 +120,6 @@ class ToDoViewModel : ViewModel(){
 
     fun getTasks(): List<ToDoItem> {
         return taskRepository.getTasks()
-    }
+    }*/
 
 }

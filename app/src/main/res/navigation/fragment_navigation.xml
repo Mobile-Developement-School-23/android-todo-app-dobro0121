@@ -14,6 +14,11 @@
             android:id="@+id/action_addTaskFragment_to_mainFragment"
             app:destination="@id/mainFragment">
         </action>
+        <argument
+            android:name="currentTask"
+            app:argType="com.example.todoapp.data.models.ToDoItem"
+            android:defaultValue="@null"
+            app:nullable="true"/>
     </fragment>
     <fragment
         android:id="@+id/mainFragment"

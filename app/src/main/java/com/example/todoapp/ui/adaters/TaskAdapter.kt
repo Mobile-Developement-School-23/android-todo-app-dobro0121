@@ -10,10 +10,12 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.CheckBox
 import android.widget.ImageButton
+import android.widget.ListAdapter
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
@@ -21,10 +23,11 @@ import com.example.todoapp.TaskDiffCallback
 import com.example.todoapp.data.models.ToDoItem
 import com.example.todoapp.data.repositories.ToDoItemRepository
 import com.example.todoapp.ui.fragments.MainFragment
+import com.example.todoapp.ui.fragments.MainFragmentDirections
 
 class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
 
-    private var tasksArray: List<ToDoItem> = listOf()
+    private var tasksArray = emptyList<ToDoItem>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.task_item, parent, false)
@@ -33,21 +36,27 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
 
     override fun getItemCount(): Int = tasksArray.size
 
+    // Два одинаковых метода с DiffUtil и без
     fun setTasks(newTasks: List<ToDoItem>) {
         val diffResult = DiffUtil.calculateDiff(TaskDiffCallback(tasksArray, newTasks))
         tasksArray = newTasks
         diffResult.dispatchUpdatesTo(this)
     }
+    // Два одинаковых метода с DiffUtil и без
+    fun setData(tasks: List<ToDoItem>) {
+        this.tasksArray = tasks
+        notifyDataSetChanged()
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         val toDoItem = tasksArray[position]
-        holder.onBind(toDoItem)
 
-        holder.itemView.setOnClickListener { v->
-            val bundle: Bundle = Bundle()
-            bundle.putString("id", toDoItem.id)
-            Navigation.findNavController(v).navigate(R.id.action_mainFragment_to_addTaskFragment, bundle)
+        holder.itemInfo.setOnClickListener() { v ->
+            val action = MainFragmentDirections.actionMainFragmentToAddTaskFragment(toDoItem)
+            holder.itemView.findNavController().navigate(action)
         }
+
+        holder.onBind(toDoItem)
     }
 
     inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
@@ -121,18 +130,10 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
                         }
                     }
                 }
-
-                itemInfo.setOnClickListener() { v ->
-                    val bundle: Bundle = Bundle()
-                    bundle.putString("id", todoItem.id)
-                    Navigation.findNavController(v)
-                        .navigate(R.id.action_mainFragment_to_addTaskFragment, bundle)
-                }
             }
 
         }
     }
 }
-
 
 

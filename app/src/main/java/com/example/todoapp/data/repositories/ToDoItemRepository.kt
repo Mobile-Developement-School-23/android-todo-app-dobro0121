@@ -1,95 +1,95 @@
 package com.example.todoapp.data.repositories
 
 import android.util.Log
+import androidx.annotation.WorkerThread
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
+import com.example.todoapp.data.databases.TaskDao
+import com.example.todoapp.data.databases.TaskRoomDatabase
 import com.example.todoapp.data.models.ToDoItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
-object ToDoItemRepository {
 
-    private val todoItems: MutableList<ToDoItem> = mutableListOf(
-        ToDoItem(UUID.randomUUID().toString(),"Купить молоко", false, "", "Нет"),
-        ToDoItem(UUID.randomUUID().toString(),"Погулять с собакой", false, "", "Нет"),
-        ToDoItem(UUID.randomUUID().toString(),"Сходить в кино", false, "", "Нет")
-    )
+class ToDoItemRepository(private val taskDao: TaskDao) {
 
-    fun addTask(taskText: String, taskId: String) {
+    //private val database by lazy { TaskRoomDatabase.getDatabase(requireContext()) }
+    private var showDone: Boolean = true
+    val allTasks: LiveData<List<ToDoItem>> = taskDao.getAllTasks()
+
+    fun getAll():LiveData<List<ToDoItem>> = taskDao.getAllTasks()
+
+    suspend fun addTask_(task: ToDoItem){
+        taskDao.insertTask(task)
+    }
+
+    suspend fun updateTask_(task: ToDoItem){
+        taskDao.updateTask(task)
+    }
+
+    suspend fun deleteTask_(task: ToDoItem){
+        taskDao.deleteTask(task)
+    }
+
+    suspend fun <T> Flow<List<T>>.flattenToList() =
+        flatMapConcat { it.asFlow() }.toList()
+
+    /*private val todoItems: MutableList<ToDoItem> = mutableListOf(
+        //ToDoItem(UUID.randomUUID().toString(), "Купить молоко", false, "", "Нет"),
+        //ToDoItem(UUID.randomUUID().toString(), "Погулять с собакой", false, "", "Нет"),
+        //ToDoItem(UUID.randomUUID().toString(), "Сходить в кино", false, "", "Нет")
+    )*/
+
+    /*fun addTask(taskText: String, taskId: String) {
         val todoItem = ToDoItem(taskId, taskText, false, "", "Нет")
-        todoItems.add(todoItem)
+        allTasks.add(todoItem)
+    }*/
+
+    fun getShowDone(): Boolean {
+        return showDone
     }
 
-    fun getTasks(): List<ToDoItem> {
-        return todoItems
+    /*suspend fun getTasks(): List<ToDoItem> {
+        return allTasks.flattenToList()
+    }*/
+
+    /*suspend fun getTaskById(taskId: Int): ToDoItem? {
+        return allTasks { it.id == taskId }
+    }*/
+
+    fun updateShowDone(newValue: Boolean) {
+        showDone = newValue
     }
 
-    fun getTaskById(taskId: String): ToDoItem? {
-        return todoItems.find { it.id == taskId }
-    }
-
-    fun updateTask(updatedTask: ToDoItem, text: String) {
-        val index = todoItems.indexOfFirst { it.id == updatedTask.id }
+    /*suspend fun updateTask(updatedTask: ToDoItem, text: String) {
+        val index = allTasks.flattenToList().indexOfFirst { it.id == updatedTask.id }
         if (index != -1) {
-            todoItems[index].textOfTask = text
-        }
-    }
-
-    fun updateDate(updatedDate: ToDoItem, newDate: String) {
-        val index = todoItems.indexOfFirst { it.id == updatedDate.id }
-        if (index != -1) {
-            todoItems[index].deadline = newDate
-        }
-    }
-
-    fun updateImportance(updatedImportance: ToDoItem, newImportance: String) {
-        val index = todoItems.indexOfFirst { it.id == updatedImportance.id }
-        if (index != -1) {
-            todoItems[index].importance = newImportance
-        }
-    }
-
-    /*fun updateTask(updatedTask: ToDoItem, text: String) {
-        val index = todoItems.indexOfFirst { it.id == updatedTask.id }
-        if (index != -1) {
-            todoItems[index].textOfTask = text
-            todoItems[index] = updatedTask
-        }
-    }
-
-    fun updateDate(updatedDate: ToDoItem, newDate: String){
-        val index = todoItems.indexOfFirst { it.id == updatedDate.id }
-        if (index != -1) {
-            todoItems[index].deadline = ""
-            todoItems[index].deadline = newDate
-            todoItems[index] = updatedDate
-        }
-    }
-
-    fun updateImportance(updatedImportance: ToDoItem, newImportance: String){
-        val index = todoItems.indexOfFirst { it.id == updatedImportance.id }
-        if (index != -1) {
-            todoItems[index].importance = ""
-            todoItems[index].importance = newImportance
-            todoItems[index] = updatedImportance
+            allTasks.flattenToList()[index].textOfTask = text
         }
     }*/
 
-    fun deleteTask(taskId: String) {
-        todoItems.removeAll { it.id == taskId }
-    }
-
-    fun howManyDone(): Int {
-        var countDone: Int = 0
-        for(i in 0 until todoItems.size)
-        {
-            if(todoItems[i].done)
-            {
-                countDone++
-            }
+    /*suspend fun updateDate(updatedDate: ToDoItem, newDate: String) {
+        val index = allTasks.indexOfFirst { it.id == updatedDate.id }
+        if (index != -1) {
+            allTasks[index].deadline = newDate
         }
-        Log.i("Logcat", countDone.toString())
-        return countDone
     }
 
-    fun getFlag(todoItem: ToDoItem): Boolean {
-        return todoItem.done
-    }
+    suspend fun updateImportance(updatedImportance: ToDoItem, newImportance: String) {
+        val index = allTasks.flattenToList().indexOfFirst { it.id == updatedImportance.id }
+        if (index != -1) {
+            allTasks.flattenToList()[index].importance = newImportance
+        }
+    }*/
+
+    /*fun deleteTask(taskId: String) {
+        allTasks.removeAll { it.id == taskId }
+    }*/
 }
