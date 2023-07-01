@@ -5,6 +5,7 @@
     <string name="no">Нет</string>
     <string name="low">Низкий</string>
     <string name="high">!! Высокий</string>
+    <string name="done">Выполнено - %1$d</string>
     <string-array name="importanceArray">
         <item>Нет</item>
         <item>Низкий</item>

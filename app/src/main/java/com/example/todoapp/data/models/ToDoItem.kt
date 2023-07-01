@@ -1,15 +1,15 @@
 package com.example.todoapp.data.models
 
-import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
+import java.util.*
 
 @Parcelize
 @Entity(tableName = "tasks_table")
-data class ToDoItem (
+data class ToDoItem(
 
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
@@ -32,5 +32,20 @@ data class ToDoItem (
     @ColumnInfo(name = "Importance")
     var importance: String
 
-): Parcelable {
+): Parcelable
+
+enum class Importance {
+    low, basic, important
 }
+
+data class ToDoItemModel (
+    val id: UUID,
+    val text: String,
+    val importance: Importance,
+    val deadline: Int,
+    val done: Boolean,
+    val color: String,
+    val created_at: Int,
+    val change_at: Int,
+    val last_updated_by: UUID
+)

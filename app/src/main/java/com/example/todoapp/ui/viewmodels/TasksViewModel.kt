@@ -1,46 +1,97 @@
 package com.example.todoapp.ui.viewmodels
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.viewModelScope
-import com.example.todoapp.data.databases.TaskRoomDatabase
+import androidx.lifecycle.*
+import com.example.todoapp.data.databases.TaskDao
 import com.example.todoapp.data.models.ToDoItem
 import com.example.todoapp.data.repositories.ToDoItemRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.todoapp.data.retrofit.Tasks
+import com.example.todoapp.data.retrofit.ToDoItemApi
+import com.example.todoapp.data.retrofit.ToDoItemModel
+import com.example.todoapp.data.utils.CoroutinesDispatcherProvider
+import com.example.todoapp.data.utils.ResultHandler
+import com.example.todoapp.data.utils.ViewState
+import com.example.todoapp.data.utils.runIO
+import com.example.todoapp.locateLazy
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class TasksViewModel(application: Application): AndroidViewModel(application) {
+class TasksViewModel: ViewModel() {
 
-    val allTasks: LiveData<List<ToDoItem>>
-    private val taskRepository: ToDoItemRepository
+    private val taskRepository: ToDoItemRepository by locateLazy()
+
+    var job : Job? = null
+
+    private val _tasks = MutableSharedFlow<List<ToDoItem>>()
+    val allTasks: SharedFlow<List<ToDoItem>> = _tasks.asSharedFlow()
+
+    val countCompletedTask: Flow<Int> = _tasks.map { it -> it.count { it.done } }
+
+    var showAll = true
 
     init {
-        val taskDao = TaskRoomDatabase.getDatabase(application).taskDao()
-        taskRepository = ToDoItemRepository(taskDao)
-        allTasks = taskRepository.allTasks
+        loadTasks()
     }
 
-    // Добавление задачи
-    fun addTask(newTask: ToDoItem) {
-        viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.addTask_(newTask)
+    fun changeMode() {
+        job?.cancel()
+        showAll = !showAll
+        loadTasks()
+    }
+
+    private fun loadTasks() {
+        job = viewModelScope.launch(Dispatchers.IO) {
+            _tasks.emitAll(taskRepository.getAllData())
         }
     }
-    // Обновление данных задачи
-    fun updateTask(updateTask: ToDoItem) {
+
+    fun getAllTasksFromServer() {
         viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.updateTask_(updateTask)
+            taskRepository.getAllTasksFromServer()
         }
     }
-    // Удаление задачи
-    fun deleteTask(deleteTask: ToDoItem) {
+
+    fun changeVisibilityButton(flag: Boolean): Boolean {
+        return !flag
+    }
+
+    fun addTask(task: ToDoItem) {
+        viewModelScope.launch(Dispatchers.IO) { taskRepository.addTask(task) }
+    }
+
+    fun addTaskToServer(revision: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            taskRepository.deleteTask_(deleteTask)
+            taskRepository.addTaskToServer(revision)
         }
     }
+
+    fun deleteTask(task: ToDoItem) {
+        viewModelScope.launch(Dispatchers.IO) { taskRepository.deleteTask(task) }
+    }
+
+    fun deleteTaskFromServer(id: String) {
+        viewModelScope.launch(Dispatchers.IO) { taskRepository.deleteTaskFromServer(id) }
+    }
+
+    fun updateTask(task: ToDoItem) {
+        viewModelScope.launch(Dispatchers.IO) { taskRepository.updateTask(task) }
+    }
+
+    fun updateTaskOnServer(id: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.updateTaskOnServer(id)
+        }
+    }
+
+    fun downloadTasksToServer(revision: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            taskRepository.downloadTasksToSever(revision)
+        }
+    }
+
+    fun getCountCompleted(): LiveData<Int> { return taskRepository.getCountCompleted() }
+
+    private fun <T> Flow<T>.asLiveDataFlow() = shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     fun getShowDone(): Boolean {
         return taskRepository.getShowDone()
@@ -50,21 +101,4 @@ class TasksViewModel(application: Application): AndroidViewModel(application) {
         taskRepository.updateShowDone(newVaue)
     }
 
-    fun getUncompletedTasks(): List<ToDoItem> {
-        val allTasks = allTasks.value
-        return allTasks?.filter { !it.done } ?: emptyList()
-    }
-
-    /*fun howManyDone(): Int {
-        var countDone: Int = 0
-            for(i in 0 until allTasks.size)
-            {
-                if(allTasks[i].done)
-                {
-                    countDone++
-                }
-            }
-            Log.i("Logcat", countDone.toString())
-        return countDone
-    }*/
 }

@@ -1,41 +1,36 @@
 package com.example.todoapp.ui.adaters
 
-import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Paint
-import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.CheckBox
 import android.widget.ImageButton
-import android.widget.ListAdapter
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.navigation.Navigation
 import androidx.navigation.findNavController
-import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
 import com.example.todoapp.TaskDiffCallback
 import com.example.todoapp.data.models.ToDoItem
-import com.example.todoapp.data.repositories.ToDoItemRepository
-import com.example.todoapp.ui.fragments.MainFragment
+import com.example.todoapp.databinding.TaskItemBinding
 import com.example.todoapp.ui.fragments.MainFragmentDirections
 
-class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
+class TaskAdapter(private val listener: TaskAdapterListener) : ListAdapter<ToDoItem, ToDoViewHolder>(
+    TaskDiffCallback()
+) {
 
-    private var tasksArray = emptyList<ToDoItem>()
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.task_item, parent, false)
-        return ViewHolder(view)
+    interface TaskAdapterListener {
+        fun onTaskCheckboxClicked(task: ToDoItem, isChecked: Boolean)
     }
 
-    override fun getItemCount(): Int = tasksArray.size
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
+        val viewHolder = ToDoViewHolder.create(parent)
+        viewHolder.setListener(listener)
+        return viewHolder
+    }
 
+    /*
     // Два одинаковых метода с DiffUtil и без
     fun setTasks(newTasks: List<ToDoItem>) {
         val diffResult = DiffUtil.calculateDiff(TaskDiffCallback(tasksArray, newTasks))
@@ -46,46 +41,77 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
     fun setData(tasks: List<ToDoItem>) {
         this.tasksArray = tasks
         notifyDataSetChanged()
-    }
+    }*/
 
-    override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
-        val toDoItem = tasksArray[position]
+    override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
+        val toDoItem = getItem(position)
+        holder.onBind(toDoItem)
 
         holder.itemInfo.setOnClickListener() { v ->
             val action = MainFragmentDirections.actionMainFragmentToAddTaskFragment(toDoItem)
             holder.itemView.findNavController().navigate(action)
         }
+    }
+}
 
-        holder.onBind(toDoItem)
+class ToDoViewHolder(private val binding: TaskItemBinding): RecyclerView.ViewHolder(binding.root){
+    lateinit var itemInfo: ImageButton
+    lateinit var itemDate: TextView
+    //private val checkBox: CheckBox
+
+    init {
+        itemInfo = itemView.findViewById(R.id.imageButtonInfo)
+        itemDate = itemView.findViewById(R.id.dateOfTaskTextView)
+        //checkBox = itemView.findViewById(R.id.checkBox)
     }
 
-    inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
-        lateinit var itemInfo: ImageButton
-        lateinit var itemDate: TextView
-        private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
+    private var listener: TaskAdapter.TaskAdapterListener? = null
 
-        init {
-            itemInfo = itemView.findViewById(R.id.imageButtonInfo)
-            itemDate = itemView.findViewById(R.id.dateOfTaskTextView)
-        }
+    var task: ToDoItem? = null
+        private set
 
-        fun onBind(todoItem: ToDoItem) {
-            checkBox.text = todoItem.textOfTask
-            checkBox.isChecked = todoItem.done
-            itemDate.text = todoItem.deadline
+    fun setListener(listener: TaskAdapter.TaskAdapterListener) {
+        this.listener = listener
+    }
 
-            if (todoItem.done) {
+    fun onBind(task: ToDoItem) {
+        this.task = task
+        //checkBox.text = todoItem.textOfTask
+        //checkBox.isChecked = todoItem.done
+        //itemDate.text = todoItem.deadline
+
+        views {
+            checkBox.text = task.textOfTask
+            checkBox.isChecked = task.done
+            itemDate.text = task.deadline
+
+            if (task.done) {
                 checkBox.paintFlags = checkBox.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
                 checkBox.setTextColor(
                     ContextCompat.getColor(
                         itemView.context,
-                        R.color.greenFormsColor
+                        R.color.lightGrey
                     )
                 )
             } else {
-                checkBox.paintFlags = checkBox.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                checkBox.setTextColor(ContextCompat.getColor(itemView.context, R.color.textColor))
-                if (todoItem.importance == "!! Высокий") {
+                checkBox.paintFlags =
+                    checkBox.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                checkBox.setTextColor(
+                    ContextCompat.getColor(
+                        itemView.context,
+                        R.color.textColor
+                    )
+                )
+            }
+            if (task.importance == "!! Высокий") {
+                if (task.done) {
+                    checkBox.buttonTintList = ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.greenFormsColor
+                        )
+                    )
+                } else {
                     checkBox.buttonTintList = ColorStateList.valueOf(
                         ContextCompat.getColor(
                             itemView.context,
@@ -93,47 +119,82 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
                         )
                     )
                 }
-
-                checkBox.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        checkBox.paintFlags = checkBox.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                        checkBox.setTextColor(
-                            ContextCompat.getColor(
-                                itemView.context,
-                                R.color.greenFormsColor
-                            )
+            } else {
+                if (task.done) {
+                    checkBox.buttonTintList = ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.greenFormsColor
                         )
-                        todoItem.done = true
+                    )
+                } else {
+                    checkBox.buttonTintList = ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.lightGrey
+                        )
+                    )
+                }
+            }
+
+
+            checkBox.setOnCheckedChangeListener(null) // Удаляем предыдущего слушателя
+            checkBox.setOnClickListener{
+                task.done = !task.done
+
+                if (task.done) {
+                    checkBox.paintFlags = checkBox.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                    checkBox.setTextColor(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.lightGrey
+                        )
+                    )
+                    checkBox.buttonTintList = ColorStateList.valueOf(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.greenFormsColor
+                        )
+                    )
+                } else {
+                    checkBox.paintFlags =
+                        checkBox.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                    checkBox.setTextColor(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.textColor
+                        )
+                    )
+                    if (task.importance == "!! Высокий") {
                         checkBox.buttonTintList = ColorStateList.valueOf(
                             ContextCompat.getColor(
                                 itemView.context,
-                                R.color.greenFormsColor
+                                R.color.redFormsColor
                             )
                         )
                     } else {
-                        checkBox.paintFlags =
-                            checkBox.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                        checkBox.setTextColor(
+                        checkBox.buttonTintList = ColorStateList.valueOf(
                             ContextCompat.getColor(
                                 itemView.context,
-                                R.color.textColor
+                                R.color.lightGrey
                             )
                         )
-                        todoItem.done = false
-                        if (todoItem.importance == "!! Высокий") {
-                            checkBox.buttonTintList = ColorStateList.valueOf(
-                                ContextCompat.getColor(
-                                    itemView.context,
-                                    R.color.redFormsColor
-                                )
-                            )
-                        }
                     }
                 }
+
+                listener?.onTaskCheckboxClicked(task, task.done)
             }
 
         }
     }
+
+    private fun <T> views(block: TaskItemBinding.() -> T): T? = binding.block()
+    companion object {
+        fun create(parent: ViewGroup) =
+            TaskItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            ).let(::ToDoViewHolder)
+    }
 }
-
-

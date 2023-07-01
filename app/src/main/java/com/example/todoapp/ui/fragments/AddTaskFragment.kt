@@ -1,6 +1,5 @@
 package com.example.todoapp.ui.fragments
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.SpannableString
@@ -17,17 +16,13 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavArgs
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.todoapp.R
 import com.example.todoapp.data.models.ToDoItem
-import com.example.todoapp.ui.adaters.TaskAdapter
 import com.example.todoapp.ui.viewmodels.TasksViewModel
-import com.example.todoapp.ui.viewmodels.ToDoViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
 import java.text.SimpleDateFormat
 import java.util.*
@@ -177,7 +172,8 @@ class AddTaskFragment : Fragment() {
 
     private fun deleteTask() {
         if(args.currentTask?.id != 0) {
-            args.currentTask?.let { taskViewModel.deleteTask(it) }
+            args.currentTask?.let { taskViewModel.deleteTask(it) } // надо поменять на другой вид айдишника
+            //args.currentTask?.let { taskViewModel.deleteTaskFromServer("tonguester", args.currentTask!!.id.toString()) }
             Toast.makeText(requireContext(), "Успешное удаление задачи из БД!",Toast.LENGTH_LONG).show()
         }
         findNavController().navigate(R.id.action_addTaskFragment_to_mainFragment)
