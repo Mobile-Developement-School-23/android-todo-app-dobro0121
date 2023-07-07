@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.todoapp.data.retrofit.Importance
 import kotlinx.parcelize.Parcelize
 import java.util.*
 
@@ -12,13 +13,13 @@ import java.util.*
 data class ToDoItem(
 
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: String,
 
     @ColumnInfo(name = "Date_of_create")
-    var dateOfCreate: String,
+    var dateOfCreate: Date,
 
     @ColumnInfo(name = "Date_of_change")
-    var dateOfChange: String,
+    var dateOfChange: Date?,
 
     @ColumnInfo(name = "Task")
     var textOfTask: String,
@@ -27,25 +28,13 @@ data class ToDoItem(
     var done: Boolean,
 
     @ColumnInfo(name = "Deadline")
-    var deadline: String,
+    var deadline: Date?,
 
     @ColumnInfo(name = "Importance")
-    var importance: String
+    var importance: Importance
 
 ): Parcelable
-
-enum class Importance {
-    low, basic, important
+{
+    constructor() : this("-1", Date(), Date(),"", false, null, Importance.basic)
 }
 
-data class ToDoItemModel (
-    val id: UUID,
-    val text: String,
-    val importance: Importance,
-    val deadline: Int,
-    val done: Boolean,
-    val color: String,
-    val created_at: Int,
-    val change_at: Int,
-    val last_updated_by: UUID
-)

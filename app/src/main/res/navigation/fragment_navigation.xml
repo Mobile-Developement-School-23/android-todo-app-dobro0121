@@ -16,7 +16,7 @@
         </action>
         <argument
             android:name="currentTask"
-            app:argType="com.example.todoapp.data.models.ToDoItem"
+            app:argType="string"
             android:defaultValue="@null"
             app:nullable="true"/>
     </fragment>

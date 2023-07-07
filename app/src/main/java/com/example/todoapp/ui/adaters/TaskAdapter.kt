@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
 import com.example.todoapp.TaskDiffCallback
 import com.example.todoapp.data.models.ToDoItem
+import com.example.todoapp.data.retrofit.Importance
 import com.example.todoapp.databinding.TaskItemBinding
 import com.example.todoapp.ui.fragments.MainFragmentDirections
+
 
 class TaskAdapter(private val listener: TaskAdapterListener) : ListAdapter<ToDoItem, ToDoViewHolder>(
     TaskDiffCallback()
@@ -22,6 +24,8 @@ class TaskAdapter(private val listener: TaskAdapterListener) : ListAdapter<ToDoI
 
     interface TaskAdapterListener {
         fun onTaskCheckboxClicked(task: ToDoItem, isChecked: Boolean)
+        fun onClickItem(idItem: String)
+        fun onClickCheck(item: ToDoItem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
@@ -45,12 +49,12 @@ class TaskAdapter(private val listener: TaskAdapterListener) : ListAdapter<ToDoI
 
     override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
         val toDoItem = getItem(position)
-        holder.onBind(toDoItem)
+        holder.onBind(toDoItem, listener)
 
-        holder.itemInfo.setOnClickListener() { v ->
+        /*holder.itemInfo.setOnClickListener() { v ->
             val action = MainFragmentDirections.actionMainFragmentToAddTaskFragment(toDoItem)
             holder.itemView.findNavController().navigate(action)
-        }
+        }*/
     }
 }
 
@@ -74,16 +78,24 @@ class ToDoViewHolder(private val binding: TaskItemBinding): RecyclerView.ViewHol
         this.listener = listener
     }
 
-    fun onBind(task: ToDoItem) {
+    fun onBind(task: ToDoItem, listener: TaskAdapter.TaskAdapterListener) {
         this.task = task
         //checkBox.text = todoItem.textOfTask
         //checkBox.isChecked = todoItem.done
         //itemDate.text = todoItem.deadline
 
+        itemView.setOnClickListener {
+            listener.onClickItem(task.id)
+        }
+
+        binding.checkBox.setOnClickListener {
+            listener.onClickCheck(task)
+        }
+
         views {
             checkBox.text = task.textOfTask
             checkBox.isChecked = task.done
-            itemDate.text = task.deadline
+            itemDate.text = task.deadline.toString()
 
             if (task.done) {
                 checkBox.paintFlags = checkBox.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
@@ -103,7 +115,7 @@ class ToDoViewHolder(private val binding: TaskItemBinding): RecyclerView.ViewHol
                     )
                 )
             }
-            if (task.importance == "!! Высокий") {
+            if (task.importance == Importance.important) {
                 if (task.done) {
                     checkBox.buttonTintList = ColorStateList.valueOf(
                         ContextCompat.getColor(
@@ -165,7 +177,7 @@ class ToDoViewHolder(private val binding: TaskItemBinding): RecyclerView.ViewHol
                             R.color.textColor
                         )
                     )
-                    if (task.importance == "!! Высокий") {
+                    if (task.importance == Importance.important) {
                         checkBox.buttonTintList = ColorStateList.valueOf(
                             ContextCompat.getColor(
                                 itemView.context,

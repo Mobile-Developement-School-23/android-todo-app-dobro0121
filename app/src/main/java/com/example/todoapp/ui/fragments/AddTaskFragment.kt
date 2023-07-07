@@ -1,5 +1,6 @@
 package com.example.todoapp.ui.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.SpannableString
@@ -14,38 +15,63 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.todoapp.R
 import com.example.todoapp.data.models.ToDoItem
+import com.example.todoapp.data.retrofit.Importance
+import com.example.todoapp.data.utils.ConnectivityObserver
+import com.example.todoapp.databinding.FragmentAddTaskBinding
+import com.example.todoapp.databinding.FragmentMainBinding
 import com.example.todoapp.ui.viewmodels.TasksViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 class AddTaskFragment : Fragment() {
 
+    private var _binding: FragmentAddTaskBinding? = null
+    private val binding get() = _binding!!
     private lateinit var taskViewModel: TasksViewModel
-
+    private var task_ = ToDoItem()
     lateinit var editViewTask: EditText
     lateinit var dateTextView: TextView
     lateinit var textImportance: TextView
 
     private val args by navArgs<AddTaskFragmentArgs>()
 
+    @SuppressLint("SimpleDateFormat")
+    val dataFormat = SimpleDateFormat("d MMMM y")
+
+    @SuppressLint("UseCompatTextViewDrawableApis")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         taskViewModel = ViewModelProvider(this).get(TasksViewModel::class.java)
-        return inflater.inflate(R.layout.fragment_add_task, container, false)
+        val id = args.currentTask
+        if (id != null && savedInstanceState == null) {
+            taskViewModel.getToDoItemById(id)
+
+            lifecycleScope.launch {
+                taskViewModel.currentItem.collect {
+                    task_ = it
+                }
+            }
+        }
+        return FragmentAddTaskBinding.inflate(inflater).also { _binding = it }.root
     }
 
+    @SuppressLint("UseCompatTextViewDrawableApis")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val builder: MaterialDatePicker.Builder<*> = MaterialDatePicker.Builder.datePicker()
@@ -59,11 +85,16 @@ class AddTaskFragment : Fragment() {
         textImportance = view.findViewById(R.id.text_importance)
 
         //deleteViewChanges(view)
-
         if(args.currentTask != null) {
-            editViewTask.setText(args.currentTask!!.textOfTask)
-            dateTextView.text = args.currentTask!!.deadline
-            textImportance.text = args.currentTask!!.importance
+
+            if (task_ != null) {
+                binding.EditTextTaskOf.setText(task_.textOfTask)
+            }
+            if (task_ != null) {
+                binding.dateTextView.text = task_.deadline?.let { dataFormat.format(it).toString() }
+            }
+
+            makeImportance(task_.importance)
         }
         if(dateTextView != null)
         {
@@ -125,11 +156,17 @@ class AddTaskFragment : Fragment() {
             picker.addOnPositiveButtonClickListener {
                 val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                 utc.timeInMillis = it as Long
-                val format = SimpleDateFormat("d MMMM yyyy")
+                val format = SimpleDateFormat("d MMM yyyy")
                 val formatted: String = format.format(utc.time)
                 dateTextView.setText(formatted)
             }
         }
+    }
+
+    fun convertStringToDateLong(dateString: String): Long {
+        val format = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+        val date = format.parse(dateString)
+        return date?.time ?: 0L
     }
 
     private fun getCurrentDate(): String = DateFormat.format("dd, MMM, yyyy", Date()).toString()
@@ -141,7 +178,7 @@ class AddTaskFragment : Fragment() {
         val dateOfCreate: String = getCurrentDate()
 
         if(inputCheck(textTask)){
-            val task = ToDoItem(0, dateOfCreate, "", textTask, false, deadline, importance)
+            val task = ToDoItem()
 
             taskViewModel.addTask(task)
             Toast.makeText(requireContext(), "Успешно добавлена задача :)", Toast.LENGTH_LONG).show()
@@ -158,11 +195,13 @@ class AddTaskFragment : Fragment() {
         val textTask: String = editViewTask.text.toString()
         val importance: String = textImportance.text.toString()
         val deadline: String = dateTextView.text.toString()
+        val deadlineLong: Long = convertStringToDateLong(deadline)
         val dateOfChange: String = getCurrentDate()
+        val dateOfChangeLong: Long = convertStringToDateLong(dateOfChange)
 
         if(inputCheck(textTask)) {
-            val updateTask = ToDoItem(args.currentTask!!.id, args.currentTask!!.dateOfCreate,
-            dateOfChange, textTask, args.currentTask!!.done, deadline, importance)
+            val updateTask = ToDoItem(task_.id, task_.dateOfCreate,
+            Date(dateOfChangeLong), textTask, task_.done, Date(deadlineLong), importance)
             taskViewModel.updateTask(updateTask)
             Toast.makeText(requireContext(), "Успешное изменение задачи!",Toast.LENGTH_LONG).show()
         } else {
@@ -171,8 +210,8 @@ class AddTaskFragment : Fragment() {
     }
 
     private fun deleteTask() {
-        if(args.currentTask?.id != 0) {
-            args.currentTask?.let { taskViewModel.deleteTask(it) } // надо поменять на другой вид айдишника
+        if(args.currentTask != null) {
+            args.currentTask?.let { taskViewModel.deleteTask(task_) } // надо поменять на другой вид айдишника
             //args.currentTask?.let { taskViewModel.deleteTaskFromServer("tonguester", args.currentTask!!.id.toString()) }
             Toast.makeText(requireContext(), "Успешное удаление задачи из БД!",Toast.LENGTH_LONG).show()
         }
@@ -251,6 +290,143 @@ class AddTaskFragment : Fragment() {
                 // Не нужно ничего делать после изменения текста
             }
         })
+    }
+
+    fun makeImportance(importance: Importance) {
+        when (importance) {
+            Importance.basic -> {
+                binding.textImportance.text = "Нет"
+                task_.importance = Importance.basic
+                binding.textImportance.setTextColor(
+                    AppCompatResources.getColorStateList(
+                        requireContext(),
+                        R.color.lightGrey
+                    )
+                )
+            }
+
+            Importance.low -> {
+                binding.textImportance.text = "Низкий"
+                task_.importance = Importance.low
+                binding.textImportance.setTextColor(
+                    AppCompatResources.getColorStateList(
+                        requireContext(),
+                        R.color.lightGrey
+                    )
+                )
+            }
+
+            Importance.important -> {
+                binding.textImportance.text = "!! Высокий"
+                task_.importance = Importance.important
+                binding.textImportance.setTextColor(
+                    AppCompatResources.getColorStateList(
+                        requireContext(),
+                        R.color.redFormsColor
+                    )
+                )
+            }
+        }
+    }
+
+    private fun createListeners() {
+        binding.buttonDeleteTask.setOnClickListener {
+            if (taskViewModel.status.value == ConnectivityObserver.Status.Available) {
+                args.currentTask?.let { taskViewModel.deleteTaskFromServer(it) }
+            } else {
+                Toast.makeText(
+                    context,
+                    R.string.unavailable_network_state_delete_later,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            taskViewModel.deleteTask(task_)
+            taskViewModel.clearTask()
+
+            findNavController().popBackStack()
+        }
+
+        binding.switchDataVisible.setOnCheckedChangeListener { _, switched ->
+            if (switched) {
+                binding.textviewDateBefore.visibility = View.VISIBLE
+                binding.textviewDateBefore.text = dataFormat.format(Date())
+                showDateTimePicker()
+            } else {
+                deleteDate()
+            }
+        }
+
+        binding.buttonSaveCreate.setOnClickListener {
+            if (binding.editText.text.isNullOrBlank()) {
+                Toast.makeText(context, R.string.error_enter_tasks_text, Toast.LENGTH_SHORT).show()
+                binding.editText.error = getString(R.string.error_enter_tasks_text)
+                return@setOnClickListener
+            }
+
+            binding.editText.error = null
+            currentTask.description = binding.editText.text.toString()
+            currentTask.changedAt = Date()
+
+
+            if (binding.buttonSaveCreate.text == getString(R.string.save_button)) {
+                if (viewModel.status.value == ConnectivityObserver.Status.Available) {
+                    viewModel.createRemoteTask(currentTask)
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.unavailable_network_state_update_later,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                viewModel.updateTask(currentTask)
+            } else {
+                if (viewModel.status.value == ConnectivityObserver.Status.Available) {
+                    viewModel.updateRemoteTask(currentTask)
+                } else {
+                    Toast.makeText(
+                        context,
+                        R.string.unavailable_network_state_create_later,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                currentTask.id = UUID.randomUUID().toString()
+                viewModel.createTask(currentTask)
+            }
+
+            viewModel.clearTask()
+            findNavController().popBackStack()
+        }
+
+        binding.toolbar.setNavigationOnClickListener {
+            viewModel.clearTask()
+            findNavController().popBackStack()
+        }
+
+        binding.menuImportance.setOnClickListener {
+            showImportancePopupMenu(binding.menuImportance)
+        }
+
+        datePicker.addOnPositiveButtonClickListener {
+            val date: Date
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = it
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            date = calendar.time
+            binding.textviewDateBefore.visibility = View.VISIBLE
+            binding.textviewDateBefore.text = dataFormat.format(date)
+            currentTask.deadline = date
+        }
+
+        datePicker.addOnNegativeButtonClickListener {
+            if (currentTask.deadline == null) deleteDate()
+        }
+
+        datePicker.addOnCancelListener {
+            if (currentTask.deadline == null) deleteDate()
+        }
     }
 }
 

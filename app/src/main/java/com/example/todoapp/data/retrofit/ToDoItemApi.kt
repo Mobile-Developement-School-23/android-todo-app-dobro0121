@@ -1,38 +1,38 @@
 package com.example.todoapp.data.retrofit
 
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Headers
-import retrofit2.http.PATCH
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.Response
+import retrofit2.http.*
 
 interface ToDoItemApi {
 
     @GET("auth/list/{id}")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun getTaskById(@Path("id") id: String): ToDoItemModel
+    suspend fun getTaskById(@Path("id") id: String): Response<ToDoApiResponseElement>
 
     @GET("list")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun getAllTasks(): Tasks
+    suspend fun getAllTasks(): Response<ToDoApiResponseList>
 
     @PATCH("auth/list")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun downloadTasksToServer(@Header("X-Last-Known-Revision:") revision: String)
+    suspend fun downloadTasksToServer(@Header("X-Last-Known-Revision:") revision: Int, @Body body: ToDoApiRequestList)
+    : Response<ToDoApiResponseList>
 
     @POST("auth/list")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun addTaskToServer(@Header("X-Last-Known-Revision:") revision: String)
+    suspend fun addTaskToServer(@Header("X-Last-Known-Revision:") revision: Int, @Body newItem: ToDoApiRequestElement)
+    : Response<ToDoApiResponseElement>
 
     @PUT("auth/list/{id}")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun changeTaskOnServer(@Path("id") id: String)
+    suspend fun changeTaskOnServer(@Header("X-Last-Known-Revision:") revision: Int,
+                                   @Path("id") id: String,
+                                   @Body body: ToDoApiRequestElement)
+    : Response<ToDoApiResponseElement>
 
     @DELETE("auth/list/{id}")
     @Headers("Authorization: Bearer tonguester")
-    suspend fun deleteTaskOnServer(@Path("id") id: String)
+    suspend fun deleteTaskOnServer(@Header("X-Last-Known-Revision:") revision: Int,
+                                   @Path("id") id: String): Response<ToDoApiResponseElement>
 
 }

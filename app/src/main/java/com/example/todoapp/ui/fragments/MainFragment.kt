@@ -1,37 +1,37 @@
 package com.example.todoapp.ui.fragments
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
 import com.example.todoapp.data.models.ToDoItem
-import com.example.todoapp.data.retrofit.StatusOfInternet
-import com.example.todoapp.data.utils.ViewState
+import com.example.todoapp.data.retrofit.LoadingState
+import com.example.todoapp.data.utils.ConnectivityObserver
 import com.example.todoapp.databinding.FragmentMainBinding
 import com.example.todoapp.ui.adaters.TaskAdapter
 import com.example.todoapp.ui.viewmodels.TasksViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import dagger.android.support.DaggerAppCompatActivity
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 
-class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
+class MainFragment : Fragment(), TaskAdapter.TaskAdapterListener {
 
     companion object {
         fun newInstance() = MainFragment()
@@ -42,19 +42,28 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
     private val binding get() = _binding!!
     private lateinit var adapter: TaskAdapter
     var flagOfVisibilityButton: Boolean = true
+    private var internetState = ConnectivityObserver.Status.Unavailable
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        //binding.imageButtonVisibility.callOnClick()
-        if(checkForInternet(requireContext())) {
-            taskViewModel.getAllTasksFromServer()
+
+        lifecycleScope.launch {
+            taskViewModel.loadingState.collectLatest {
+                updateLoadingStatus(it)
+            }
+        }
+
+        lifecycleScope.launch {
+            taskViewModel.status.collectLatest {
+                updateNetworkState(it)
+            }
         }
         return FragmentMainBinding.inflate(inflater).also { _binding = it }.root
     }
 
-    private fun checkForInternet(context: Context): Boolean {
+    /*private fun checkForInternet(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork ?: return false
@@ -71,18 +80,37 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
             // else return false
             else -> false
         }
-    }
+    }*/
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        //taskViewModel = ViewModelProvider(this).get(TasksViewModel::class.java)
 
         views {
             val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_tasks)
             val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recyclerView.layoutManager = layoutManager
-            adapter = TaskAdapter(this@MainFragment)
+            adapter = TaskAdapter(object : TaskAdapter.TaskAdapterListener {
+                override fun onClickCheck(item: ToDoItem) {
+                    if (internetState == ConnectivityObserver.Status.Available) {
+                        taskViewModel.updateTaskOnServer(item)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Нет подключения к интернету, пока работа производится оффлайн",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+                override fun onTaskCheckboxClicked(task: ToDoItem, isChecked: Boolean) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun onClickItem(idItem: String) {
+                    val action = MainFragmentDirections.actionMainFragmentToAddTaskFragment(idItem)
+                    findNavController().navigate(action)
+                }
+            })
             recyclerView.adapter = adapter
         }
 
@@ -92,6 +120,13 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
         taskViewModel.getCountCompleted().observe(viewLifecycleOwner) { count ->
             binding.textViewDone.text = getString(R.string.done, count)
         }
+
+        lifecycleScope.launch {
+            taskViewModel.allTasks.collectLatest {
+                updateUI(it)
+            }
+        }
+
 
         taskViewModel.changeMode()
 
@@ -191,12 +226,98 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
         taskViewModel.updateTask(taskUpdate)
     }
 
+    override fun onClickCheck(item: ToDoItem) {
+        if (internetState == ConnectivityObserver.Status.Available) {
+            taskViewModel.updateTaskOnServer(item)
+        } else {
+            Toast.makeText(
+                context,
+                "No internet connection, will upload with later. Continue offline.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        taskViewModel.changeMode()
+    }
+
+    override fun onClickItem(idItem: String) {
+        val action = MainFragmentDirections.actionMainFragmentToAddTaskFragment(idItem)
+        findNavController().navigate(action)
+    }
+
+    private fun <T> views(block: FragmentMainBinding.() -> T): T? = _binding?.block()
+
+    private fun updateUI(list: List<ToDoItem>) {
+        if (taskViewModel.showAll) {
+            adapter.submitList(list)
+            binding.recyclerViewTasks.scrollToPosition(0)
+        } else {
+            adapter.submitList(list.filter { !it.done })
+        }
+    }
+
+
+    private fun updateLoadingStatus(loadingState: LoadingState<Any>) {
+        when (loadingState) {
+            is LoadingState.Loading -> {
+                binding.recyclerViewTasks.visibility = View.GONE
+                binding.recyclerViewTasks.visibility = View.VISIBLE
+            }
+
+            is LoadingState.Success -> {
+                binding.recyclerViewTasks.visibility = View.VISIBLE
+            }
+
+            is LoadingState.Error -> {
+                binding.recyclerViewTasks.visibility = View.VISIBLE
+                Toast.makeText(
+                    requireContext(),
+                    "Загрузка провалена, показаны локальные данные",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun updateNetworkState(status: ConnectivityObserver.Status) {
+        when (status) {
+            ConnectivityObserver.Status.Available -> {
+                if (internetState != status) {
+                    Toast.makeText(context, "Есть подключение к интернету", Toast.LENGTH_SHORT)
+                        .show()
+                    taskViewModel.getAllTasksFromServer()
+                }
+
+            }
+
+            ConnectivityObserver.Status.Unavailable -> {
+                if (internetState != status) {
+                    Toast.makeText(context, "Отсутствует подключение к интернету", Toast.LENGTH_SHORT)
+                        .show()
+                    taskViewModel.getAllTasksFromServer()
+                }
+            }
+
+            ConnectivityObserver.Status.Losing -> {
+                if (internetState != status) {
+                    Toast.makeText(context, "Нестабильно подключение к интернету", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            ConnectivityObserver.Status.Lost -> {
+                if (internetState != status) {
+                    Toast.makeText(context, "Потеряно подключение к интернету", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        internetState = status
+    }
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
-    private fun <T> views(block: FragmentMainBinding.() -> T): T? = _binding?.block()
 }
 
 
