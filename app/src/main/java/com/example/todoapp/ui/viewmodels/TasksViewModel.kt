@@ -1,6 +1,9 @@
 package com.example.todoapp.ui.viewmodels
 
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.*
+import com.example.todoapp.R
+import com.example.todoapp.data.SharedPreferences
 import com.example.todoapp.data.databases.TaskDao
 import com.example.todoapp.data.models.ToDoItem
 import com.example.todoapp.data.repositories.ToDoItemRepository
@@ -12,13 +15,15 @@ import com.example.todoapp.data.utils.ResultHandler
 import com.example.todoapp.data.utils.ViewState
 import com.example.todoapp.data.utils.runIO
 import com.example.todoapp.locateLazy
+import com.example.todoapp.ui.fragments.MainFragment
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
-class TasksViewModel: ViewModel() {
+class TasksViewModel(): ViewModel() {
 
     private val taskRepository: ToDoItemRepository by locateLazy()
+    //private val sharedPreferences: SharedPreferences
 
     var job : Job? = null
 
@@ -101,4 +106,7 @@ class TasksViewModel: ViewModel() {
         taskRepository.updateShowDone(newVaue)
     }
 
+    //fun getStatusNotifications() = sharedPreferences.getNotificationStatus()
+
+    //fun putStatusNotification(status : Boolean) = sharedPreferences.putNotificationStatus(status)
 }

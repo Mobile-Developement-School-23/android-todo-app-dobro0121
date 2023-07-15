@@ -2,19 +2,42 @@ package com.example.todoapp
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
+import android.os.Build
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import com.example.todoapp.data.SharedPreferences
 import com.example.todoapp.data.databases.TaskRoomDatabase
 import com.example.todoapp.data.repositories.ToDoItemRepository
+import com.example.todoapp.ui.fragments.MainFragment
 import kotlin.reflect.KClass
+
 
 class App: Application() {
 
+    //lateinit var sharedPreferencesAppSettings: SharedPreferences
     override fun onCreate() {
         super.onCreate()
 
         ServiceLocator.register<Context>(this)
         ServiceLocator.register(TaskRoomDatabase.getDatabase(locate()))
         ServiceLocator.register(ToDoItemRepository(locate()))
+        createNotificationChannel()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Progress Notification"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(MainFragment.CHANNEL_ID, name, importance).apply {
+                description = "Progress Notification Channel"
+            }
+            val notificationManager: NotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }
 

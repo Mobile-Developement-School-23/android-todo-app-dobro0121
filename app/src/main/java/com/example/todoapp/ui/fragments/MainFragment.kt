@@ -1,7 +1,13 @@
 package com.example.todoapp.ui.fragments
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationChannelGroup
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -12,6 +18,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
@@ -23,18 +35,24 @@ import com.example.todoapp.data.models.ToDoItem
 import com.example.todoapp.data.retrofit.StatusOfInternet
 import com.example.todoapp.data.utils.ViewState
 import com.example.todoapp.databinding.FragmentMainBinding
+import com.example.todoapp.ui.activities.MainActivity
 import com.example.todoapp.ui.adaters.TaskAdapter
 import com.example.todoapp.ui.viewmodels.TasksViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import okhttp3.internal.notify
 
 
 class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
 
+
     companion object {
         fun newInstance() = MainFragment()
+        const val NOTIFICATION_ID = 105
+        const val CHANNEL_ID = "channelID"
     }
 
     private val taskViewModel: TasksViewModel by viewModels()
@@ -43,11 +61,16 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
     private lateinit var adapter: TaskAdapter
     var flagOfVisibilityButton: Boolean = true
 
+        //val notificationPermissionLauncher =
+      //  (context as MainActivity).registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+       //     taskViewModel.putStatusNotification(isGranted)
+       // }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        //binding.imageButtonVisibility.callOnClick()
+        //checkStatusNotification()
         if(checkForInternet(requireContext())) {
             taskViewModel.getAllTasksFromServer()
         }
@@ -111,68 +134,6 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
         addButton.setOnClickListener {
             findNavController(view).navigate(R.id.action_mainFragment_to_addTaskFragment)
         }
-
-        //taskViewModel = ViewModelProvider(this).get(TasksViewModel::class.java)
-        //val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_tasks)
-        //val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        //recyclerView.layoutManager = layoutManager
-        //val adapter = TaskAdapter()
-        //recyclerView.adapter = adapter
-
-        /*taskViewModel.allTasks.observe(viewLifecycleOwner, Observer { tasks ->
-            adapter.setTasks(tasks)
-            adapter.notifyDataSetChanged()
-        })*/
-
-        /*val showDoneButton = view.findViewById<ImageButton>(R.id.imageButtonVisibility)
-        showDoneButton.setOnClickListener {
-            val currentValue = taskViewModel.getShowDone() // Получаем текущее состояниеглазика
-            lateinit var tasksToShow: List<ToDoItem> // здесь будет итоговый список тасков,который необходимо отобразить
-            if (currentValue) { // если глазик "включен", значит, необходимо его переключить на "выкл" и отобразить только невыполненные
-                tasksToShow = taskViewModel.getUncompletedTasks()
-                showDoneButton.setImageResource(R.drawable.visibility_off)
-                taskViewModel.updateShowDone(!currentValue) // обновляем состояние глазика в репозитории
-            } else { // если глазик "выключен", значит, необходимо его переключить на "вкл" и отобразить все таски
-                tasksToShow = taskViewModel.allTasks.value!!
-                showDoneButton.setImageResource(R.drawable.visibility)
-                taskViewModel.updateShowDone(!currentValue) // обновляем состояние глазика в репозитории
-            }
-            adapter.setData(tasksToShow) // устанавливаем в адаптер итоговый список тасков
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val currentValue = taskViewModel.getShowDone() // Получаем состояние глазика
-                if (currentValue) {
-                    showDoneButton.setImageResource(R.drawable.visibility)
-                } else {
-                    showDoneButton.setImageResource(R.drawable.visibility_off)
-                }
-                val tasksToShow = if (currentValue) {
-                    taskViewModel.allTasks.value // Показать все задачи
-                } else {
-                    taskViewModel.getUncompletedTasks() // Показать только невыполненные задачи
-                }
-                if (tasksToShow != null) {
-                    adapter.setData(tasksToShow)
-                }
-            }
-        }
-
-        taskViewModel.allTasks.observe(viewLifecycleOwner) {
-            val currentValue = taskViewModel.getShowDone() // Получаем состояние глазика
-            if (currentValue) {
-                showDoneButton.setImageResource(R.drawable.visibility)
-            } else {
-                showDoneButton.setImageResource(R.drawable.visibility_off)
-            }
-            val tasksToShow = if (currentValue) {
-                taskViewModel.allTasks.value // Показать все задачи
-            } else {
-                taskViewModel.getUncompletedTasks() // Показать только невыполненные задачи
-            }
-            adapter.setData(tasksToShow!!)
-        }*/
     }
 
     private fun renderTasks(tasks: List<ToDoItem>) {
@@ -197,6 +158,35 @@ class MainFragment() : Fragment(), TaskAdapter.TaskAdapterListener {
     }
 
     private fun <T> views(block: FragmentMainBinding.() -> T): T? = _binding?.block()
+
+    /*private fun checkStatusNotification() {
+        if (taskViewModel.getStatusNotifications() == null) {
+            if (Build.VERSION.SDK_INT >= 33) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                showNotificationDialog()
+            }
+        }
+    }
+
+    private fun showNotificationDialog() {
+        val builder = MaterialAlertDialogBuilder(
+            ContextThemeWrapper(
+                context, R.style.Theme_ToDoApp
+            )
+        )
+        builder.apply {
+            setTitle(context.getString(R.string.allow_notifications_dialog_title))
+            setMessage(context.getString(R.string.allow_notification_dialog_body))
+            setPositiveButton(context.getString(R.string.allow_button)) { _, _ ->
+                taskViewModel.putStatusNotification(true)
+            }
+            setNegativeButton(context.getString(R.string.deny_button)) { _, _ ->
+                taskViewModel.putStatusNotification(false)
+            }
+        }
+        builder.show().create()
+    }*/
 }
 
 

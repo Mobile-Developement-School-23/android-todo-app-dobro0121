@@ -58,7 +58,7 @@ class AddTaskFragment : Fragment() {
         val textViewSafe: TextView = view.findViewById(R.id.SafeTextView)
         textImportance = view.findViewById(R.id.text_importance)
 
-        //deleteViewChanges(view)
+        deleteViewChanges(view)
 
         if(args.currentTask != null) {
             editViewTask.setText(args.currentTask!!.textOfTask)
@@ -69,22 +69,6 @@ class AddTaskFragment : Fragment() {
         {
             switchCalendar.isChecked
         }
-
-        /*val task: ToDoItem? = idTask?.let { taskViewModel.getTaskById(it) }
-        Log.i("Logcat", "task " + task)
-        if (idTask != null) {
-            if(idTask.isNotEmpty()){
-                if (task != null) {
-                    editViewTask.setText(task.textOfTask)
-                    dateTextView.text = task.deadline
-                    textImportance.text = task.importance
-                    if(dateTextView != null)
-                    {
-                        switchCalendar.isChecked
-                    }
-                }
-            }
-        }*/
 
         importantTextView.setOnClickListener() {
             showImportanceList(importantTextView, textImportance)

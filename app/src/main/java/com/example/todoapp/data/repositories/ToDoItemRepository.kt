@@ -13,6 +13,7 @@ import com.example.todoapp.data.retrofit.Tasks
 import com.example.todoapp.data.retrofit.ToDoItemApi
 import com.example.todoapp.data.retrofit.ToDoItemModel
 import com.example.todoapp.data.utils.Constants.BASE_URL
+import com.example.todoapp.data.utils.notificationManager.NotificationScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -34,7 +35,6 @@ class ToDoItemRepository(private val db: TaskRoomDatabase) {
 
     private val taskDao get() = db.taskDao
     private var showDone: Boolean = true
-
 
 
     val interceptor = HttpLoggingInterceptor()
@@ -96,5 +96,4 @@ class ToDoItemRepository(private val db: TaskRoomDatabase) {
     fun updateShowDone(newValue: Boolean) {
         showDone = newValue
     }
-
 }

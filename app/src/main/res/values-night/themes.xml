@@ -2,15 +2,16 @@
     <!-- Base application theme. -->
     <style name="Theme.ToDoApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/textColor</item>
-        <item name="colorPrimaryVariant">@color/formsColorDark</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimary">@color/backgroundColor</item>
+        <item name="colorPrimaryVariant">@color/backgroundDarkColor</item>
+        <item name="colorOnPrimary">@color/formsColorDark</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/backgroundColor</item>
-        <item name="colorSecondaryVariant">@color/backgroundDarkColor</item>
+        <item name="colorSecondary">@color/textColor</item>
+        <item name="colorSecondaryVariant">@color/formsColorDark</item>
         <item name="colorOnSecondary">@color/formsColor</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="colorTertiary">@color/blueFormsColor</item>
         <!-- Customize your theme here. -->
     </style>
 </resources>
