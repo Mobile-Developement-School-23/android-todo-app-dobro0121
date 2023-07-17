@@ -1,13 +1,46 @@
 <resources>
     <string name="app_name">ToDoApp</string>
     <!-- TODO: Remove or change this placeholder text -->
+    <style name="myTasks">Мои дела</style>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="no">Нет</string>
     <string name="low">Низкий</string>
     <string name="high">!! Высокий</string>
+    <string name="done">Выполнено - %1$d</string>
+    <string name="channel_name">ChannelNotificayion</string>
+    <string name="channel_description">descr_notification</string>
+    <string name="hour_before_task">Остался час до дедлайна!</string>
+    <string name="postpone_for_a_day">Отложено на день</string>
+    <string name="notification_text">Осталось около часа</string>
+    <string name="allow_button">Разрешить</string>
+    <string name="deny_button">Отменить</string>
+    <string name="allow_notifications_dialog_title">Разрешение на показ уведомлений</string>
+    <string name="allow_notification_dialog_body">Данные уведолмения будут показыватьсодержимое задачи и ее важность</string>
+    <string name="done__">Выполнено -</string>
+    <string name="something_todo">Что-то надо сделать...</string>
+    <string name="saveButton">Сохранить</string>
+    <string name="deleteButton">   Удалить</string>
+    <string name="done_to_">Сделать до</string>
+    <string name="importance">Важность</string>
+    <string name="no_importance">Нет</string>
+
     <string-array name="importanceArray">
         <item>Нет</item>
         <item>Низкий</item>
         <item>!! Высокий</item>
     </string-array>
+
+    <string-array name="theme_options">
+        <item>light</item>
+        <item>dark</item>
+        <item>system</item>
+    </string-array>
+
+    <string-array name="theme_labels">
+        <item>Light theme</item>
+        <item>Dark theme</item>
+        <item>System theme</item>
+    </string-array>
+
+
 </resources>

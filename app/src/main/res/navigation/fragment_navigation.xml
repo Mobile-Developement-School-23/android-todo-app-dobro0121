@@ -12,8 +12,17 @@
         tools:layout="@layout/fragment_add_task" >
         <action
             android:id="@+id/action_addTaskFragment_to_mainFragment"
-            app:destination="@id/mainFragment">
+            app:destination="@id/mainFragment"
+            app:enterAnim="@animator/anim_enter"
+            app:exitAnim="@animator/anim_out"
+            app:popEnterAnim="@animator/anim_enter"
+            app:popExitAnim="@animator/anim_out">
         </action>
+        <argument
+            android:name="currentTask"
+            app:argType="com.example.todoapp.data.models.ToDoItem"
+            android:defaultValue="@null"
+            app:nullable="true"/>
     </fragment>
     <fragment
         android:id="@+id/mainFragment"
@@ -22,6 +31,11 @@
         tools:layout="@layout/fragment_main" >
         <action
             android:id="@+id/action_mainFragment_to_addTaskFragment"
-            app:destination="@id/addTaskFragment" />
+            app:destination="@id/addTaskFragment"
+            app:enterAnim="@animator/anim_enter"
+            app:exitAnim="@animator/anim_out"
+            app:popEnterAnim="@animator/anim_enter"
+            app:popExitAnim="@animator/anim_out"
+            app:popUpTo="@layout/fragment_main"/>
     </fragment>
 </navigation>

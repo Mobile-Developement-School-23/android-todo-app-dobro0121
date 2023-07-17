@@ -2,21 +2,23 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@color/backgroundColor"
     app:cardCornerRadius="10dp"
     app:cardPreventCornerOverlap="true"
-    android:layout_margin="5dp"
-    tools:viewBindingIgnore="true">
+    android:layout_margin="5dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:foreground="?attr/selectableItemBackground">
 
         <CheckBox
             android:id="@+id/checkBox"
             android:text=" "
+            style="@style/ItemDescText"
             android:layout_width="190dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -25,9 +27,6 @@
             android:layout_marginStart="30dp"
             android:scaleX="1.3"
             android:scaleY="1.3"
-            android:maxLines="30"
-            android:minLines="1"
-            android:singleLine="false"
             app:buttonTint="@color/textColor"
             app:layout_constraintHorizontal_weight="10"
             android:buttonTint="@color/formsColorDark"
@@ -54,13 +53,9 @@
             android:gravity="left"
             android:layout_marginBottom="10dp"
             android:layout_marginTop="15dp"
-            android:layout_marginLeft="35dp"
-            android:maxLines="10"
-            android:minLines="1"
-            android:singleLine="false"
-            android:text="Дата какая-то"
-            android:textColor="@color/blueFormsColor"
-            android:textSize="16dp"
+            android:layout_marginStart="35dp"
+            android:text=""
+            style="@style/ItemDateText"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/checkBox"
